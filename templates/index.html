@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" style="background-image: url('../static/image/wallpaperflare.com_wallpaper.jpg');
+background-attachment: fixed;">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big News Post</title>
+   
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import "tailwindcss/base";
+  @import "./custom-base-styles.css";
+
+   @import "tailwindcss/components";
+@import "./custom-components.css";
+
+@import "tailwindcss/utilities";
+@import "./custom-utilities.css";
+    </style>
+</head>
+<body>
+    <div class="mb-10 top-1 w-screen flex flex-col justify-center items-center">
+        <img src="../static/image/logo.png" class="w-64 h-64" alt="Logo Image">
+    </div>
+
+    <div class="bottom-6 m-auto relative" id="container" style="width:614px; height:700px;">
+        <img src="" id="bg" alt="bgImage" width="614px" height="700px">
+        <span class="font-mono text-lg absolute text-white whitespace-pre-line text-justify" id="News"
+            style="width: 550px; top: 100px; left: 30px; line-height: 2em;">
+            {{News|safe}}
+        </span>
+    </div>
+
+    <div id="canvasWrapper" class="mb-10 w-screen flex justify-center items-center ">
+        <select id="bgImageSelect" class="text-white p-3 rounded-md font-sans text-xl bg-gradient-to-r
+            from-green-400 to-blue-500 hover:pink-500 hover:to-yellow-500 mr-8" onchange="selectBackground()">
+            <option value="" class="bg-gray-700 text-white px-4 py-2 rounded ">-- Select Background --</option>
+            <option value="1" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 1</option>
+            <option value="2" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 2</option>
+            <option value="3" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 3</option>
+            <option value="4" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 4</option>
+            <option value="5" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 5</option>
+            <option value="6" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 6</option>
+            <option value="7" class="bg-gray-700 text-white px-4 py-2 rounded ">Image 7</option>
+            
+            <option value="random" class="bg-gray-700 text-white px-4 py-2 rounded ">Choose Random Image</option>
+            <option value="selectButton" class="bg-gray-700 text-white px-4 py-2 rounded ">Choose Image from Device</option>
+        </select>
+        <label for="bgImageInput" class="text-white p-3 rounded-md font-sans text-xl bg-gradient-to-r
+            from-green-400 to-blue-500 hover:pink-500 hover:to-yellow-500 cursor-pointer mr-4"
+            style="display: none;">
+            Select Background Image
+        </label>
+        <input type="file" id="bgImageInput" style="display: none;" accept="image/*" onchange="handleImageChange(event)">
+        <button class="text-white p-3 rounded-md font-sans text-xl bg-gradient-to-r
+            from-green-400 to-blue-500 hover:pink-500 hover:to-yellow-500" onclick="download()">Download Post</button>
+    </div>
+    
+       <script>
+        var newbg = document.getElementById("bg");
+        var randomImages = ['1.jpg', '2.jpg', '3.jpg']; // Add more random image filenames as needed.
+
+        function handleImageChange(event) {
+            var file = event.target.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function() {
+                var image = new Image();
+                image.onload = function() {
+                    var canvas = document.createElement('canvas');
+                    var context = canvas.getContext('2d');
+                    var containerWidth = 614;
+                    var containerHeight = 700;
+
+                    // Calculate scaling to fit the image within the container
+                    var scaleX = containerWidth / image.width;
+                    var scaleY = containerHeight / image.height;
+                    var scale = Math.min(scaleX, scaleY);
+
+                    // Calculate new dimensions
+                    var newWidth = image.width * scale;
+                    var newHeight = image.height * scale;
+
+                    // Calculate offset to center the image within the container
+                    var offsetX = (containerWidth - newWidth) / 2;
+                    var offsetY = (containerHeight - newHeight) / 2;
+
+                    // Set canvas size to container size
+                    canvas.width = containerWidth;
+                    canvas.height = containerHeight;
+
+                    // Draw the image on the canvas
+                    context.drawImage(image, offsetX, offsetY, newWidth, newHeight);
+
+                    // Set the canvas data as the new background image
+                    newbg.src = canvas.toDataURL('image/jpeg');
+                };
+                image.src = reader.result;
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function selectBackground() {
+            var selectedOption = document.getElementById("bgImageSelect").value;
+            if (selectedOption === "random") {
+                // If the user selects the "Random Background" option, choose a random image from the array.
+                var randomIndex = Math.floor(Math.random() * randomImages.length);
+                var randomImageUrl = "static/image/" + randomImages[randomIndex];
+                newbg.src = randomImageUrl;
+            } else if (selectedOption === "selectButton") {
+                // If the user selects the "Select Background Image" option, trigger the file input element to allow image selection.
+                document.getElementById("bgImageInput").click();
+            } else if (selectedOption) {
+                // Set the selected image from the dropdown as the background image.
+                var selectedImageUrl = "static/image/" + selectedOption + ".jpg";
+                newbg.src = selectedImageUrl;
+            } else {
+                // If the user selects "-- Select Background --" option or clears the selection, reset the background image.
+                newbg.src = "";
+            }
+        }
+
+        function download() {
+            var currentDate = new Date().toISOString().slice(0, 10);
+            html2canvas(document.getElementById("container"), { height: 700, width: 614 }).then(canvas => {
+                var a = document.createElement('a');
+                a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+                a.download = "Bignewstoday_" + currentDate + ".jpg";
+                a.click();
+            });
+        }
+
+        // Set random image and update date on page load
+        window.onload = function() {
+            var randomIndex = Math.floor(Math.random() * randomImages.length);
+            var randomImageUrl = "static/image/" + randomImages[randomIndex];
+            newbg.src = randomImageUrl;
+            updateCanvasDate();
+        };
+
+      
+    function updateCanvasDate() {
+        var dateText = document.createElement('div');
+        var options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        dateText.innerText = new Date().toLocaleDateString('en-GB', options);
+        dateText.style.position = 'absolute';
+        dateText.style.bottom = '30px';
+        dateText.style.right = '70px';
+        dateText.style.fontSize = '18px';
+        dateText.style.color = 'white';
+        document.getElementById('container').appendChild(dateText);
+    }
+    </script>
+
+    <script src="/static/js/h2c.min.js"></script>
+</body>
+</html>
